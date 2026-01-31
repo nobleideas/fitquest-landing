@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:html' as html;
 import 'dart:ui_web' as ui_web;
 
@@ -61,13 +62,14 @@ class HomePage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 22),
-
               Wrap(
                 spacing: 12,
                 runSpacing: 12,
                 children: [
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      // TODO: Replace with your Play Store listing once you have it.
+                    },
                     child: const Text('Download on Google Play'),
                   ),
                   OutlinedButton(
@@ -76,20 +78,17 @@ class HomePage extends StatelessWidget {
                   ),
                 ],
               ),
-
               const SizedBox(height: 18),
               const Text(
                 'Support: support@fitquest.space',
                 style: TextStyle(color: Colors.black54),
               ),
-
               const SizedBox(height: 38),
               const _SectionHeader(
                 title: 'See Fit Quest in action',
                 subtitle: 'Two quick clips that show the vibe and the core flows.',
               ),
               const SizedBox(height: 16),
-
               const PromoVideoCard(
                 title: 'Promo video #1',
                 description: '54-second overview of the Fit Quest experience.',
@@ -101,11 +100,9 @@ class HomePage extends StatelessWidget {
                 description: '1:20 deep dive into exercise history and form videos.',
                 assetPath: 'assets/videos/promo2.mp4',
               ),
-
               const SizedBox(height: 34),
               const Divider(height: 1),
               const SizedBox(height: 14),
-
               Row(
                 children: [
                   TextButton(
@@ -171,7 +168,6 @@ class PromoVideoCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
-
           ClipRRect(
             borderRadius: BorderRadius.circular(14),
             child: AspectRatio(
@@ -179,10 +175,17 @@ class PromoVideoCard extends StatelessWidget {
               child: Container(
                 color: Colors.black,
                 child: kIsWeb
-                    ? _NativeHtmlVideo(assetPath: assetPath)
-                    : const SizedBox.shrink(),
+                    ? _NativeHtmlVideoWithFullscreen(assetPath: assetPath)
+                    : const Center(
+                        child: Text('Video is available on web.', style: TextStyle(color: Colors.white70)),
+                      ),
               ),
             ),
+          ),
+          const SizedBox(height: 10),
+          const Text(
+            'Use the ↗ button for fullscreen (more reliable than the native fullscreen control).',
+            style: TextStyle(color: Color(0xFF6B7280), fontSize: 12),
           ),
         ],
       ),
@@ -190,58 +193,144 @@ class PromoVideoCard extends StatelessWidget {
   }
 }
 
-class _NativeHtmlVideo extends StatefulWidget {
+class _NativeHtmlVideoWithFullscreen extends StatefulWidget {
   final String assetPath;
-  const _NativeHtmlVideo({required this.assetPath});
+  const _NativeHtmlVideoWithFullscreen({required this.assetPath});
 
   @override
-  State<_NativeHtmlVideo> createState() => _NativeHtmlVideoState();
+  State<_NativeHtmlVideoWithFullscreen> createState() => _NativeHtmlVideoWithFullscreenState();
 }
 
-class _NativeHtmlVideoState extends State<_NativeHtmlVideo> {
+class _NativeHtmlVideoWithFullscreenState extends State<_NativeHtmlVideoWithFullscreen> {
   late final String _viewType;
   html.VideoElement? _video;
+  StreamSubscription<html.Event>? _fsSub;
 
   @override
   void initState() {
     super.initState();
 
     _viewType = 'fq-video-${widget.assetPath}-${DateTime.now().microsecondsSinceEpoch}';
+
+    // Flutter web assets are served under /assets/...
+    // If widget.assetPath is "assets/videos/promo1.mp4", actual served URL becomes:
+    // /assets/assets/videos/promo1.mp4
     final src = 'assets/${widget.assetPath}';
 
     final v = html.VideoElement()
       ..src = src
       ..controls = true
       ..preload = 'metadata'
+      ..autoplay = false
+      ..loop = false
+      ..muted = false
       ..style.width = '100%'
       ..style.height = '100%'
       ..style.maxWidth = '100%'
       ..style.maxHeight = '100%'
       ..style.objectFit = 'contain'
+      ..style.backgroundColor = 'black'
       ..style.transform = 'none'
       ..style.setProperty('-webkit-transform', 'none')
-      ..style.backgroundColor = 'black'
       ..setAttribute('playsinline', 'true')
-      ..setAttribute('webkit-playsinline', 'true');
+      ..setAttribute('webkit-playsinline', 'true')
+      // Disable native fullscreen button where supported, because that's what's causing rotation weirdness.
+      ..setAttribute('controlsList', 'nofullscreen nodownload noplaybackrate')
+      ..setAttribute('disablePictureInPicture', 'true');
 
     _video = v;
 
-    ui_web.platformViewRegistry.registerViewFactory(
-      _viewType,
-      (int viewId) => v,
-    );
+    ui_web.platformViewRegistry.registerViewFactory(_viewType, (int viewId) => v);
+
+    // Listen for fullscreen exit to unlock orientation (best-effort).
+    _fsSub = html.document.onFullscreenChange.listen((_) async {
+      final isFs = html.document.fullscreenElement != null;
+      if (!isFs) {
+        await _unlockOrientationBestEffort();
+      }
+    });
   }
 
   @override
   void dispose() {
+    _fsSub?.cancel();
     _video?.pause();
     _video = null;
     super.dispose();
   }
 
+  Future<void> _enterFullscreen() async {
+    final v = _video;
+    if (v == null) return;
+
+    try {
+      // Request fullscreen on the video element itself.
+      await v.requestFullscreen();
+    } catch (_) {
+      // Fallback: request fullscreen on the document element.
+      try {
+        await html.document.documentElement?.requestFullscreen();
+      } catch (_) {}
+    }
+
+    // Best-effort orientation lock: many browsers allow this ONLY in fullscreen + user gesture.
+    // We lock to landscape because promo videos look best and avoids weird rotations.
+    await _lockOrientationBestEffort();
+  }
+
+  Future<void> _lockOrientationBestEffort() async {
+    try {
+      final orientation = html.window.screen?.orientation;
+      if (orientation != null) {
+        // Some browsers support 'landscape' / 'portrait' or 'landscape-primary'
+        await orientation.lock('landscape');
+      }
+    } catch (_) {
+      // Ignore: not supported in this browser or blocked by permissions.
+    }
+  }
+
+  Future<void> _unlockOrientationBestEffort() async {
+    try {
+      final orientation = html.window.screen?.orientation;
+      if (orientation != null) {
+        orientation.unlock();
+      }
+    } catch (_) {
+      // Ignore
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return HtmlElementView(viewType: _viewType);
+    return Stack(
+      children: [
+        const Positioned.fill(child: ColoredBox(color: Colors.black)),
+        Positioned.fill(child: HtmlElementView(viewType: _viewType)),
+
+        // Our fullscreen button (reliable). Native fullscreen disabled above.
+        Positioned(
+          right: 10,
+          bottom: 10,
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: _enterFullscreen,
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0x99000000),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0x33FFFFFF)),
+                ),
+                child: const Icon(Icons.open_in_full, color: Colors.white, size: 18),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
 
