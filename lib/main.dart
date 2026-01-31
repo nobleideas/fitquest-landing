@@ -1,10 +1,14 @@
+import 'dart:html' as html;
+import 'dart:ui_web' as ui_web;
+
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
-import 'package:video_player/video_player.dart';
+import 'package:go_router/go_router.dart';
 
 void main() {
-  usePathUrlStrategy();
+  usePathUrlStrategy(); // removes #/ from URLs on Flutter web
   runApp(const FitQuestLanding());
 }
 
@@ -39,19 +43,24 @@ class HomePage extends StatelessWidget {
     return Scaffold(
       body: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 980),
+          // Wider so the videos can be BIG
+          constraints: const BoxConstraints(maxWidth: 1200),
           child: ListView(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
             children: [
               const SizedBox(height: 8),
               const Text(
                 'Fit Quest',
-                style: TextStyle(fontSize: 44, fontWeight: FontWeight.w800),
+                style: TextStyle(fontSize: 46, fontWeight: FontWeight.w900),
               ),
               const SizedBox(height: 10),
               const Text(
                 'A social, gamified fitness tracker. Log workouts, share progress, and level up.',
-                style: TextStyle(fontSize: 18, height: 1.4, color: Color(0xFF374151)),
+                style: TextStyle(
+                  fontSize: 18,
+                  height: 1.4,
+                  color: Color(0xFF374151),
+                ),
               ),
               const SizedBox(height: 22),
 
@@ -61,8 +70,8 @@ class HomePage extends StatelessWidget {
                 children: [
                   ElevatedButton(
                     onPressed: () {
-                      // TODO: replace once your Play Store listing exists
-                      // ex: launchUrl(Uri.parse('https://play.google.com/store/apps/details?id=...'));
+                      // TODO: Replace with your Play Store listing once you have it.
+                      // Example: https://play.google.com/store/apps/details?id=YOUR.PACKAGE
                     },
                     child: const Text('Download on Google Play'),
                   ),
@@ -79,61 +88,30 @@ class HomePage extends StatelessWidget {
                 style: TextStyle(color: Colors.black54),
               ),
 
-              const SizedBox(height: 34),
+              const SizedBox(height: 38),
               const _SectionHeader(
                 title: 'See Fit Quest in action',
                 subtitle: 'Two quick clips that show the vibe and the core flows.',
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 16),
 
-              // Responsive grid-ish layout: stacks on narrow screens, 2-column on wider.
-              LayoutBuilder(
-                builder: (context, c) {
-                  final isWide = c.maxWidth >= 820;
-                  if (!isWide) {
-                    return const Column(
-                      children: [
-                        PromoVideoCard(
-                          title: 'Promo video #1',
-                          description: 'Your 54-second overview: social + tracking + sharing.',
-                          assetPath: 'assets/videos/promo1.mp4',
-                        ),
-                        SizedBox(height: 16),
-                        PromoVideoCard(
-                          title: 'Promo video #2',
-                          description: 'Your 1:20 deep dive: history + suggested sets + form video.',
-                          assetPath: 'assets/videos/promo2.mp4',
-                        ),
-                      ],
-                    );
-                  }
-
-                  return const Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: PromoVideoCard(
-                          title: 'Promo video #1',
-                          description: 'Your 54-second overview: social + tracking + sharing.',
-                          assetPath: 'assets/videos/promo1.mp4',
-                        ),
-                      ),
-                      SizedBox(width: 16),
-                      Expanded(
-                        child: PromoVideoCard(
-                          title: 'Promo video #2',
-                          description: 'Your 1:20 deep dive: history + suggested sets + form video.',
-                          assetPath: 'assets/videos/promo2.mp4',
-                        ),
-                      ),
-                    ],
-                  );
-                },
+              // BIG by default: stacked full-width cards
+              const PromoVideoCard(
+                title: 'Promo video #1',
+                description: '54-second overview: account setup, friends, sharing, importing.',
+                assetPath: 'assets/videos/promo1.mp4',
+              ),
+              const SizedBox(height: 20),
+              const PromoVideoCard(
+                title: 'Promo video #2',
+                description: '1:20 deep dive: exercise history, suggested sets, form video + import.',
+                assetPath: 'assets/videos/promo2.mp4',
               ),
 
-              const SizedBox(height: 30),
+              const SizedBox(height: 34),
               const Divider(height: 1),
-              const SizedBox(height: 18),
+              const SizedBox(height: 14),
+
               Row(
                 children: [
                   TextButton(
@@ -143,7 +121,10 @@ class HomePage extends StatelessWidget {
                   const SizedBox(width: 8),
                   const Text('•', style: TextStyle(color: Colors.black38)),
                   const SizedBox(width: 8),
-                  Text('© ${_Year.now} Fit Quest', style: TextStyle(color: Colors.black54)),
+                  Text(
+                    '© ${DateTime.now().year} Fit Quest',
+                    style: const TextStyle(color: Colors.black54),
+                  ),
                 ],
               ),
             ],
@@ -154,7 +135,7 @@ class HomePage extends StatelessWidget {
   }
 }
 
-class PromoVideoCard extends StatefulWidget {
+class PromoVideoCard extends StatelessWidget {
   final String title;
   final String description;
   final String assetPath;
@@ -167,34 +148,9 @@ class PromoVideoCard extends StatefulWidget {
   });
 
   @override
-  State<PromoVideoCard> createState() => _PromoVideoCardState();
-}
-
-class _PromoVideoCardState extends State<PromoVideoCard> {
-  late final VideoPlayerController _controller;
-  bool _ready = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = VideoPlayerController.asset(widget.assetPath)
-      ..setLooping(true)
-      ..initialize().then((_) {
-        if (!mounted) return;
-        setState(() => _ready = true);
-      });
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
@@ -210,104 +166,100 @@ class _PromoVideoCardState extends State<PromoVideoCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(widget.title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+          Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
           const SizedBox(height: 6),
           Text(
-            widget.description,
-            style: const TextStyle(color: Color(0xFF4B5563), height: 1.35),
+            description,
+            style: const TextStyle(
+              color: Color(0xFF4B5563),
+              height: 1.35,
+              fontSize: 15,
+            ),
           ),
           const SizedBox(height: 14),
 
+          // BIG 16:9 frame, native browser controls => fullscreen button works
           ClipRRect(
             borderRadius: BorderRadius.circular(14),
             child: AspectRatio(
               aspectRatio: 16 / 9,
               child: Container(
                 color: const Color(0xFF0B1220),
-                child: !_ready
-                    ? const Center(child: CircularProgressIndicator())
-                    : Stack(
-                        alignment: Alignment.bottomCenter,
-                        children: [
-                          VideoPlayer(_controller),
-                          _ControlsBar(controller: _controller),
-                        ],
+                child: kIsWeb
+                    ? _NativeHtmlVideo(assetPath: assetPath)
+                    : const Center(
+                        child: Text(
+                          'Video preview is available on web.',
+                          style: TextStyle(color: Colors.white70),
+                        ),
                       ),
               ),
             ),
           ),
+
+          const SizedBox(height: 10),
+          const Text(
+            'Tip: Use the fullscreen icon in the video controls.',
+            style: TextStyle(color: Color(0xFF6B7280), fontSize: 12),
+          ),
         ],
       ),
     );
   }
 }
 
-class _ControlsBar extends StatefulWidget {
-  final VideoPlayerController controller;
-  const _ControlsBar({required this.controller});
+class _NativeHtmlVideo extends StatefulWidget {
+  final String assetPath;
+  const _NativeHtmlVideo({required this.assetPath});
 
   @override
-  State<_ControlsBar> createState() => _ControlsBarState();
+  State<_NativeHtmlVideo> createState() => _NativeHtmlVideoState();
 }
 
-class _ControlsBarState extends State<_ControlsBar> {
+class _NativeHtmlVideoState extends State<_NativeHtmlVideo> {
+  late final String _viewType;
+  html.VideoElement? _video;
+
   @override
   void initState() {
     super.initState();
-    widget.controller.addListener(_tick);
+
+    // Unique view type per widget instance
+    _viewType = 'fq-video-${widget.assetPath}-${DateTime.now().microsecondsSinceEpoch}';
+
+    // Use native HTML5 <video> for reliable fullscreen + controls on web
+    final v = html.VideoElement()
+      ..src = widget.assetPath
+      ..controls = true
+      ..autoplay = false
+      ..loop = false
+      ..preload = 'metadata'
+      ..style.width = '100%'
+      ..style.height = '100%'
+      ..style.border = '0'
+      ..style.margin = '0'
+      ..style.padding = '0'
+      ..style.objectFit = 'cover'
+      ..setAttribute('playsinline', 'true');
+
+    _video = v;
+
+    // Register with Flutter web
+    // ignore: undefined_prefixed_name
+    ui_web.platformViewRegistry.registerViewFactory(_viewType, (int viewId) => v);
+
   }
 
   @override
   void dispose() {
-    widget.controller.removeListener(_tick);
+    _video?.pause();
+    _video = null;
     super.dispose();
-  }
-
-  void _tick() {
-    if (mounted) setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    final c = widget.controller;
-    final isPlaying = c.value.isPlaying;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      color: const Color(0x66000000),
-      child: Row(
-        children: [
-          IconButton(
-            onPressed: () => isPlaying ? c.pause() : c.play(),
-            icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow, color: Colors.white),
-            tooltip: isPlaying ? 'Pause' : 'Play',
-          ),
-          Expanded(
-            child: VideoProgressIndicator(
-              c,
-              allowScrubbing: true,
-              colors: const VideoProgressColors(
-                playedColor: Colors.white,
-                bufferedColor: Color(0x99FFFFFF),
-                backgroundColor: Color(0x33FFFFFF),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            _fmt(c.value.position) + ' / ' + _fmt(c.value.duration),
-            style: const TextStyle(color: Colors.white, fontSize: 12),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _fmt(Duration d) {
-    final s = d.inSeconds;
-    final m = (s ~/ 60).toString().padLeft(1, '0');
-    final r = (s % 60).toString().padLeft(2, '0');
-    return '$m:$r';
+    return HtmlElementView(viewType: _viewType);
   }
 }
 
@@ -322,9 +274,12 @@ class _SectionHeader extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+        Text(title, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),
         const SizedBox(height: 6),
-        Text(subtitle, style: const TextStyle(color: Color(0xFF4B5563), height: 1.35)),
+        Text(
+          subtitle,
+          style: const TextStyle(color: Color(0xFF4B5563), height: 1.35),
+        ),
       ],
     );
   }
@@ -377,8 +332,4 @@ support@fitquest.space
       ),
     );
   }
-}
-
-class _Year {
-  static int get now => DateTime.now().year;
 }
