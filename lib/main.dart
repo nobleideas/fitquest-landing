@@ -7,7 +7,7 @@ import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:go_router/go_router.dart';
 
 void main() {
-  usePathUrlStrategy();
+  usePathUrlStrategy(); // removes #/ from URLs on Flutter web
   runApp(const FitQuestLanding());
 }
 
@@ -88,19 +88,17 @@ class HomePage extends StatelessWidget {
                 subtitle: 'Two quick clips that show the vibe and the core flows.',
               ),
               const SizedBox(height: 16),
-
               const PromoVideoCard(
                 title: 'Promo video #1',
-                description: '54-second overview of the Fit Quest experience.',
+                description: '54-second overview: account setup, friends, sharing, importing.',
                 assetPath: 'assets/videos/promo1.mp4',
               ),
               const SizedBox(height: 20),
               const PromoVideoCard(
                 title: 'Promo video #2',
-                description: '1:20 deep dive into exercise history and form videos.',
+                description: '1:20 deep dive: exercise history, suggested sets, form video + import.',
                 assetPath: 'assets/videos/promo2.mp4',
               ),
-
               const SizedBox(height: 34),
               const Divider(height: 1),
               const SizedBox(height: 14),
@@ -144,37 +142,28 @@ class PromoVideoCard extends StatefulWidget {
 }
 
 class _PromoVideoCardState extends State<PromoVideoCard> {
-  html.VideoElement? _video; // the inline video element
+  html.VideoElement? _video;
 
-  void _openOverlay() {
+  Future<void> _fullscreen() async {
     final v = _video;
     if (v == null) return;
 
-    // Pause inline video so we don't get double-audio
+    // Pause/play around fullscreen tends to reduce weirdness on some Android builds.
     try {
       v.pause();
     } catch (_) {}
 
-    showGeneralDialog(
-      context: context,
-      barrierDismissible: true,
-      barrierLabel: 'Close video',
-      barrierColor: const Color(0xDD000000),
-      transitionDuration: const Duration(milliseconds: 160),
-      pageBuilder: (ctx, a1, a2) {
-        return _VideoOverlay(
-          original: v,
-          title: widget.title,
-        );
-      },
-      transitionBuilder: (ctx, anim, sec, child) {
-        final t = Curves.easeOut.transform(anim.value);
-        return Transform.scale(
-          scale: 0.98 + (0.02 * t),
-          child: Opacity(opacity: t, child: child),
-        );
-      },
-    );
+    try {
+      await v.requestFullscreen();
+    } catch (_) {
+      try {
+        await html.document.documentElement?.requestFullscreen();
+      } catch (_) {}
+    }
+
+    try {
+      await v.play();
+    } catch (_) {}
   }
 
   @override
@@ -207,7 +196,6 @@ class _PromoVideoCardState extends State<PromoVideoCard> {
             ),
           ),
           const SizedBox(height: 14),
-
           ClipRRect(
             borderRadius: BorderRadius.circular(14),
             child: AspectRatio(
@@ -215,29 +203,25 @@ class _PromoVideoCardState extends State<PromoVideoCard> {
               child: Container(
                 color: Colors.black,
                 child: kIsWeb
-                    ? _NativeHtmlInlineVideo(
+                    ? _NativeHtmlVideo(
                         assetPath: widget.assetPath,
-                        onCreated: (el) => _video = el,
+                        onCreated: (v) => _video = v,
                       )
                     : const Center(
-                        child: Text(
-                          'Video is available on web.',
-                          style: TextStyle(color: Colors.white70),
-                        ),
+                        child: Text('Video available on web.', style: TextStyle(color: Colors.white70)),
                       ),
               ),
             ),
           ),
-
           const SizedBox(height: 12),
 
-          // Tap-safe: button is BELOW the video (no fighting scrubber / cast / 3-dots)
+          // Tap-safe fullscreen button BELOW the video (won't fight scrubber / cast / menu)
           Align(
             alignment: Alignment.centerRight,
             child: SizedBox(
               height: 44,
               child: OutlinedButton.icon(
-                onPressed: kIsWeb ? _openOverlay : null,
+                onPressed: kIsWeb ? _fullscreen : null,
                 icon: const Icon(Icons.open_in_full),
                 label: const Text('Fullscreen'),
                 style: OutlinedButton.styleFrom(
@@ -253,22 +237,20 @@ class _PromoVideoCardState extends State<PromoVideoCard> {
   }
 }
 
-/// Inline <video> element that behaves nicely on mobile.
-/// NOTE: This is NOT browser fullscreen. Fullscreen is handled by our overlay.
-class _NativeHtmlInlineVideo extends StatefulWidget {
+class _NativeHtmlVideo extends StatefulWidget {
   final String assetPath;
-  final void Function(html.VideoElement el) onCreated;
+  final void Function(html.VideoElement v) onCreated;
 
-  const _NativeHtmlInlineVideo({
+  const _NativeHtmlVideo({
     required this.assetPath,
     required this.onCreated,
   });
 
   @override
-  State<_NativeHtmlInlineVideo> createState() => _NativeHtmlInlineVideoState();
+  State<_NativeHtmlVideo> createState() => _NativeHtmlVideoState();
 }
 
-class _NativeHtmlInlineVideoState extends State<_NativeHtmlInlineVideo> {
+class _NativeHtmlVideoState extends State<_NativeHtmlVideo> {
   late final String _viewType;
   html.VideoElement? _video;
 
@@ -276,10 +258,10 @@ class _NativeHtmlInlineVideoState extends State<_NativeHtmlInlineVideo> {
   void initState() {
     super.initState();
 
-    _viewType = 'fq-inline-${widget.assetPath}-${DateTime.now().microsecondsSinceEpoch}';
+    _viewType = 'fq-video-${widget.assetPath}-${DateTime.now().microsecondsSinceEpoch}';
 
-    // Flutter web serves assets under /assets/...
-    // If assetPath is "assets/videos/promo1.mp4", served URL is:
+    // Flutter serves assets under /assets/...
+    // If widget.assetPath is "assets/videos/promo1.mp4", served URL becomes:
     //   /assets/assets/videos/promo1.mp4
     final src = 'assets/${widget.assetPath}';
 
@@ -296,11 +278,9 @@ class _NativeHtmlInlineVideoState extends State<_NativeHtmlInlineVideo> {
       ..style.maxHeight = '100%'
       ..style.objectFit = 'contain'
       ..style.backgroundColor = 'black'
-      ..style.transform = 'none'
-      ..style.setProperty('-webkit-transform', 'none')
       ..setAttribute('playsinline', 'true')
       ..setAttribute('webkit-playsinline', 'true')
-      // Reduce cast prompts where supported:
+      // reduce casting prompts where supported
       ..setAttribute('disableRemotePlayback', 'true')
       ..setAttribute('x-webkit-airplay', 'deny')
       ..setAttribute('controlsList', 'nodownload noplaybackrate');
@@ -323,144 +303,6 @@ class _NativeHtmlInlineVideoState extends State<_NativeHtmlInlineVideo> {
   @override
   Widget build(BuildContext context) {
     return HtmlElementView(viewType: _viewType);
-  }
-}
-
-/// Full-screen modal overlay that stays inside the page.
-/// This avoids Android Chrome's true fullscreen rotation weirdness.
-class _VideoOverlay extends StatefulWidget {
-  final html.VideoElement original;
-  final String title;
-
-  const _VideoOverlay({
-    required this.original,
-    required this.title,
-  });
-
-  @override
-  State<_VideoOverlay> createState() => _VideoOverlayState();
-}
-
-class _VideoOverlayState extends State<_VideoOverlay> {
-  late final String _viewType;
-  html.VideoElement? _overlayVideo;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _viewType = 'fq-overlay-${DateTime.now().microsecondsSinceEpoch}';
-
-    // Clone a new <video> element pointing at the same source.
-    // This avoids weird state carryover from inline controls.
-    final src = widget.original.currentSrc.isNotEmpty ? widget.original.currentSrc : widget.original.src;
-
-    final v = html.VideoElement()
-      ..src = src
-      ..controls = true
-      ..preload = 'auto'
-      ..autoplay = true
-      ..loop = false
-      ..muted = false
-      ..style.width = '100%'
-      ..style.height = '100%'
-      ..style.maxWidth = '100%'
-      ..style.maxHeight = '100%'
-      ..style.objectFit = 'contain'
-      ..style.backgroundColor = 'black'
-      ..style.transform = 'none'
-      ..style.setProperty('-webkit-transform', 'none')
-      ..setAttribute('playsinline', 'true')
-      ..setAttribute('webkit-playsinline', 'true')
-      ..setAttribute('disableRemotePlayback', 'true')
-      ..setAttribute('x-webkit-airplay', 'deny')
-      ..setAttribute('controlsList', 'nodownload noplaybackrate');
-
-    _overlayVideo = v;
-    ui_web.platformViewRegistry.registerViewFactory(_viewType, (int viewId) => v);
-  }
-
-  @override
-  void dispose() {
-    try {
-      _overlayVideo?.pause();
-    } catch (_) {}
-    _overlayVideo = null;
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Material(
-        color: Colors.transparent,
-        child: Stack(
-          children: [
-            // Backdrop tap to close
-            Positioned.fill(
-              child: GestureDetector(
-                onTap: () => Navigator.of(context).pop(),
-                child: const ColoredBox(color: Colors.transparent),
-              ),
-            ),
-
-            // Centered video container
-            Positioned.fill(
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 1200),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Top bar
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                widget.title,
-                                style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            IconButton(
-                              onPressed: () => Navigator.of(context).pop(),
-                              icon: const Icon(Icons.close, color: Colors.white),
-                              tooltip: 'Close',
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-
-                        // Big video area
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
-                          child: AspectRatio(
-                            aspectRatio: 16 / 9,
-                            child: Container(
-                              color: Colors.black,
-                              child: HtmlElementView(viewType: _viewType),
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(height: 10),
-                        const Text(
-                          'Tip: Rotate your phone to landscape for the biggest view.',
-                          style: TextStyle(color: Color(0xFFCBD5E1), fontSize: 12),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }
 
@@ -506,9 +348,23 @@ Last updated: 2026-01-30
 Fit Quest provides fitness tracking and social features.
 
 Data we collect:
-- Email and username
-- Workout data
-- Uploaded content (form videos)
+- Email and username (account creation)
+- Workout data (exercises, sets, reps, weights)
+- Content you upload (such as form videos)
+- Basic diagnostics for reliability and support
+
+How we use data:
+- To provide core app functionality
+- To enable social features you choose to use
+- To improve performance and reliability
+
+Data sharing:
+- Data may be stored/processed using third-party services such as Supabase.
+- We do not sell personal data.
+
+Data retention:
+- Data is retained while your account is active.
+- You may request deletion by contacting support@fitquest.space.
 
 Contact:
 support@fitquest.space
