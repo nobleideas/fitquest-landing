@@ -37785,7 +37785,7 @@ $2(a,b){return B.HS},
 $S:264}
 A.qq.prototype={
 O(a){var s,r=null,q=t.E
-q=A.c([B.Kk,B.PE,B.x6,B.PI,B.Kh,new A.Lk(12,12,A.c([new A.Gg(new A.a_O(),r,r,r,r,r,r,!1,r,!0,r,B.PJ,r),new A.I4(new A.a_P(a),r,r,r,r,r,r,!1,r,!0,r,B.k0,r)],q),r),B.Kf,B.PM,B.Kj,B.Sz,B.jR,B.HV,B.Kg,B.HU,B.Ki,B.Bf,B.x7,A.aBM(A.c([A.aaf(B.k0,new A.a_Q(a),r),B.x5,B.PF,B.x5,A.kj("\xa9 "+A.aqQ(new A.hP(Date.now(),0,!1))+" Fit Quest",r,r,B.xt)],q),B.bk,B.cG)],q)
+q=A.c([B.Kk,B.PE,B.x6,B.PI,B.Kh,new A.Lk(12,12,A.c([new A.Gg(new A.a_O(),r,r,r,r,r,r,!1,r,!0,r,B.PJ,r),new A.I4(new A.a_P(a),r,r,r,r,r,r,!1,r,!0,r,B.k0,r)],q),r),B.Kf,B.PM,B.Kj,B.Sz,B.jR,B.HU,B.Kg,B.HV,B.Ki,B.Bf,B.x7,A.aBM(A.c([A.aaf(B.k0,new A.a_Q(a),r),B.x5,B.PF,B.x5,A.kj("\xa9 "+A.aqQ(new A.hP(Date.now(),0,!1))+" Fit Quest",r,r,B.xt)],q),B.bk,B.cG)],q)
 s=A.az([null,0],t.LO,t.S)
 return A.am3(r,A.jx(new A.fB(B.yz,new A.Hp(new A.a9y(!0,!0,!0,q,s),B.BG,B.b0,!1,r,r,B.yb,!1,r,18,B.ai,r,r,B.a4,B.aj,r),r),r,r))}}
 A.a_O.prototype={
@@ -80026,8 +80026,8 @@ B.AJ=new A.l2(B.l,null,null)
 B.HR=new A.lI(0,0,0,0,null,null,B.AJ,null)
 B.HS=new A.r5(null)
 B.HT=new A.xH(null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
-B.HU=new A.xI("Promo video #2","1:20 deep dive into exercise history and form videos.","assets/videos/promo2.mp4",null)
-B.HV=new A.xI("Promo video #1","54-second overview of the Fit Quest experience.","assets/videos/promo1.mp4",null)
+B.HU=new A.xI("Promo video #1","54-second overview of the Fit Quest experience.","assets/videos/fq-promo1.mp4",null)
+B.HV=new A.xI("Promo video #2","1:20 deep dive into exercise history and form videos.","assets/videos/promo2.mp4",null)
 B.HW=new A.xK(null,null,null,null,null,null,null)
 B.w9=new A.aN(1,1)
 B.cU=new A.aN(2,2)

@@ -92,7 +92,7 @@ class HomePage extends StatelessWidget {
               const PromoVideoCard(
                 title: 'Promo video #1',
                 description: '54-second overview of the Fit Quest experience.',
-                assetPath: 'assets/videos/promo1.mp4',
+                assetPath: 'assets/videos/fq-promo1.mp4',
               ),
               const SizedBox(height: 20),
               const PromoVideoCard(
