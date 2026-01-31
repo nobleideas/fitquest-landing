@@ -61,6 +61,8 @@ class HomePage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 24),
+
+              /// 🔹 BUTTONS
               Wrap(
                 spacing: 12,
                 runSpacing: 12,
@@ -73,8 +75,18 @@ class HomePage extends StatelessWidget {
                     onPressed: () => context.go('/privacy'),
                     child: const Text('Privacy Policy'),
                   ),
+                  OutlinedButton(
+                    onPressed: () {
+                      html.window.open(
+                        'https://supabase-auth-sigma.vercel.app/',
+                        '_blank',
+                      );
+                    },
+                    child: const Text('Mobile Web Version'),
+                  ),
                 ],
               ),
+
               const SizedBox(height: 16),
               const Text(
                 'Support: support@fitquest.space',
