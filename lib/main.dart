@@ -100,7 +100,7 @@ class HomePage extends StatelessWidget {
                 title: 'Promo video #1',
                 description:
                     '54-second overview: account setup, friends, sharing, importing.',
-                assetPath: 'assets/videos/promo1.mp4',
+                assetPath: 'assets/videos/fq-promo1.mp4',
               ),
               const SizedBox(height: 20),
               const PromoVideoCard(
