@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:html' as html;
 import 'dart:ui_web' as ui_web;
 
@@ -7,7 +8,7 @@ import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:go_router/go_router.dart';
 
 void main() {
-  usePathUrlStrategy(); // removes #/ from URLs on Flutter web
+  usePathUrlStrategy();
   runApp(const FitQuestLanding());
 }
 
@@ -42,32 +43,31 @@ class HomePage extends StatelessWidget {
     return Scaffold(
       body: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1200),
+          constraints: const BoxConstraints(maxWidth: 1100),
           child: ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
             children: [
-              const SizedBox(height: 8),
               const Text(
                 'Fit Quest',
-                style: TextStyle(fontSize: 46, fontWeight: FontWeight.w900),
+                style: TextStyle(fontSize: 44, fontWeight: FontWeight.w900),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
               const Text(
                 'A social, gamified fitness tracker. Log workouts, share progress, and level up.',
                 style: TextStyle(
                   fontSize: 18,
                   height: 1.4,
-                  color: Color(0xFF374151),
+                  color: Color(0xFF4B5563),
                 ),
               ),
-              const SizedBox(height: 22),
+              const SizedBox(height: 24),
               Wrap(
                 spacing: 12,
                 runSpacing: 12,
                 children: [
                   ElevatedButton(
                     onPressed: () {
-                      // TODO: Replace with your Play Store listing once you have it.
+                      // Add Play Store link when ready
                     },
                     child: const Text('Download on Google Play'),
                   ),
@@ -77,31 +77,31 @@ class HomePage extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 16),
               const Text(
                 'Support: support@fitquest.space',
                 style: TextStyle(color: Colors.black54),
               ),
-              const SizedBox(height: 38),
+              const SizedBox(height: 40),
               const _SectionHeader(
                 title: 'See Fit Quest in action',
-                subtitle: 'Two quick clips that show the vibe and the core flows.',
-              ),
-              const SizedBox(height: 16),
-              const PromoVideoCard(
-                title: 'Promo video #1',
-                description: '54-second overview: account setup, friends, sharing, importing.',
-                assetPath: 'assets/videos/promo1.mp4',
+                subtitle: 'Two short clips showing the core experience.',
               ),
               const SizedBox(height: 20),
               const PromoVideoCard(
-                title: 'Promo video #2',
-                description: '1:20 deep dive: exercise history, suggested sets, form video + import.',
+                title: 'Overview',
+                description: 'Account setup, friends, sharing, and importing.',
+                assetPath: 'assets/videos/promo1.mp4',
+              ),
+              const SizedBox(height: 24),
+              const PromoVideoCard(
+                title: 'Exercise flow',
+                description: 'History, suggested sets, and form video sharing.',
                 assetPath: 'assets/videos/promo2.mp4',
               ),
-              const SizedBox(height: 34),
-              const Divider(height: 1),
-              const SizedBox(height: 14),
+              const SizedBox(height: 40),
+              const Divider(),
+              const SizedBox(height: 12),
               Row(
                 children: [
                   TextButton(
@@ -125,7 +125,7 @@ class HomePage extends StatelessWidget {
   }
 }
 
-class PromoVideoCard extends StatefulWidget {
+class PromoVideoCard extends StatelessWidget {
   final String title;
   final String description;
   final String assetPath;
@@ -138,41 +138,12 @@ class PromoVideoCard extends StatefulWidget {
   });
 
   @override
-  State<PromoVideoCard> createState() => _PromoVideoCardState();
-}
-
-class _PromoVideoCardState extends State<PromoVideoCard> {
-  html.VideoElement? _video;
-
-  Future<void> _fullscreen() async {
-    final v = _video;
-    if (v == null) return;
-
-    // Pause/play around fullscreen tends to reduce weirdness on some Android builds.
-    try {
-      v.pause();
-    } catch (_) {}
-
-    try {
-      await v.requestFullscreen();
-    } catch (_) {
-      try {
-        await html.document.documentElement?.requestFullscreen();
-      } catch (_) {}
-    }
-
-    try {
-      await v.play();
-    } catch (_) {}
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFFE5E7EB)),
         boxShadow: const [
           BoxShadow(
@@ -185,51 +156,30 @@ class _PromoVideoCardState extends State<PromoVideoCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(widget.title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
+          Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
           const SizedBox(height: 6),
           Text(
-            widget.description,
+            description,
             style: const TextStyle(
               color: Color(0xFF4B5563),
               height: 1.35,
-              fontSize: 15,
             ),
           ),
           const SizedBox(height: 14),
           ClipRRect(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(12),
             child: AspectRatio(
               aspectRatio: 16 / 9,
               child: Container(
                 color: Colors.black,
-                child: kIsWeb
-                    ? _NativeHtmlVideo(
-                        assetPath: widget.assetPath,
-                        onCreated: (v) => _video = v,
-                      )
-                    : const Center(
-                        child: Text('Video available on web.', style: TextStyle(color: Colors.white70)),
-                      ),
+                child: kIsWeb ? _NativeHtmlVideo(assetPath: assetPath) : const SizedBox.shrink(),
               ),
             ),
           ),
-          const SizedBox(height: 12),
-
-          // Tap-safe fullscreen button BELOW the video (won't fight scrubber / cast / menu)
-          Align(
-            alignment: Alignment.centerRight,
-            child: SizedBox(
-              height: 44,
-              child: OutlinedButton.icon(
-                onPressed: kIsWeb ? _fullscreen : null,
-                icon: const Icon(Icons.open_in_full),
-                label: const Text('Fullscreen'),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-            ),
+          const SizedBox(height: 10),
+          const Text(
+            'Tip: Tap Play to open fullscreen automatically.',
+            style: TextStyle(color: Color(0xFF6B7280), fontSize: 12),
           ),
         ],
       ),
@@ -239,12 +189,7 @@ class _PromoVideoCardState extends State<PromoVideoCard> {
 
 class _NativeHtmlVideo extends StatefulWidget {
   final String assetPath;
-  final void Function(html.VideoElement v) onCreated;
-
-  const _NativeHtmlVideo({
-    required this.assetPath,
-    required this.onCreated,
-  });
+  const _NativeHtmlVideo({required this.assetPath});
 
   @override
   State<_NativeHtmlVideo> createState() => _NativeHtmlVideoState();
@@ -252,7 +197,13 @@ class _NativeHtmlVideo extends StatefulWidget {
 
 class _NativeHtmlVideoState extends State<_NativeHtmlVideo> {
   late final String _viewType;
+
   html.VideoElement? _video;
+  StreamSubscription<html.Event>? _onPlaySub;
+  StreamSubscription<html.Event>? _fsSub;
+
+  bool _enteredFullscreen = false;
+  bool _requestingFullscreen = false;
 
   @override
   void initState() {
@@ -260,12 +211,12 @@ class _NativeHtmlVideoState extends State<_NativeHtmlVideo> {
 
     _viewType = 'fq-video-${widget.assetPath}-${DateTime.now().microsecondsSinceEpoch}';
 
-    // Flutter serves assets under /assets/...
+    // Flutter web serves assets under /assets/...
     // If widget.assetPath is "assets/videos/promo1.mp4", served URL becomes:
     //   /assets/assets/videos/promo1.mp4
     final src = 'assets/${widget.assetPath}';
 
-    final v = html.VideoElement()
+    final video = html.VideoElement()
       ..src = src
       ..controls = true
       ..preload = 'metadata'
@@ -274,25 +225,57 @@ class _NativeHtmlVideoState extends State<_NativeHtmlVideo> {
       ..muted = false
       ..style.width = '100%'
       ..style.height = '100%'
-      ..style.maxWidth = '100%'
-      ..style.maxHeight = '100%'
       ..style.objectFit = 'contain'
       ..style.backgroundColor = 'black'
       ..setAttribute('playsinline', 'true')
       ..setAttribute('webkit-playsinline', 'true')
-      // reduce casting prompts where supported
-      ..setAttribute('disableRemotePlayback', 'true')
-      ..setAttribute('x-webkit-airplay', 'deny')
       ..setAttribute('controlsList', 'nodownload noplaybackrate');
 
-    _video = v;
-    widget.onCreated(v);
+    _video = video;
 
-    ui_web.platformViewRegistry.registerViewFactory(_viewType, (int viewId) => v);
+    // When user hits Play, attempt to enter fullscreen.
+    _onPlaySub = video.onPlay.listen((_) async {
+      // If already fullscreen, nothing to do.
+      if (html.document.fullscreenElement != null) return;
+      // Avoid spamming requests.
+      if (_requestingFullscreen) return;
+
+      _requestingFullscreen = true;
+      try {
+        await video.requestFullscreen();
+        _enteredFullscreen = true;
+      } catch (_) {
+        // Browser may block programmatic fullscreen. That's ok—video will just play inline.
+        _enteredFullscreen = false;
+      } finally {
+        _requestingFullscreen = false;
+      }
+    });
+
+    // When fullscreen closes, stop the video (pause + reset).
+    _fsSub = html.document.onFullscreenChange.listen((_) {
+      final isFullscreen = html.document.fullscreenElement != null;
+
+      // Only stop if this instance successfully entered fullscreen previously.
+      if (!isFullscreen && _enteredFullscreen) {
+        try {
+          video.pause();
+          video.currentTime = 0;
+        } catch (_) {}
+        _enteredFullscreen = false;
+      }
+    });
+
+    ui_web.platformViewRegistry.registerViewFactory(
+      _viewType,
+      (int viewId) => video,
+    );
   }
 
   @override
   void dispose() {
+    _onPlaySub?.cancel();
+    _fsSub?.cancel();
     try {
       _video?.pause();
     } catch (_) {}
@@ -319,10 +302,7 @@ class _SectionHeader extends StatelessWidget {
       children: [
         Text(title, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),
         const SizedBox(height: 6),
-        Text(
-          subtitle,
-          style: const TextStyle(color: Color(0xFF4B5563), height: 1.35),
-        ),
+        Text(subtitle, style: const TextStyle(color: Color(0xFF4B5563))),
       ],
     );
   }
@@ -348,23 +328,9 @@ Last updated: 2026-01-30
 Fit Quest provides fitness tracking and social features.
 
 Data we collect:
-- Email and username (account creation)
-- Workout data (exercises, sets, reps, weights)
-- Content you upload (such as form videos)
-- Basic diagnostics for reliability and support
-
-How we use data:
-- To provide core app functionality
-- To enable social features you choose to use
-- To improve performance and reliability
-
-Data sharing:
-- Data may be stored/processed using third-party services such as Supabase.
-- We do not sell personal data.
-
-Data retention:
-- Data is retained while your account is active.
-- You may request deletion by contacting support@fitquest.space.
+- Email and username
+- Workout data
+- Uploaded content (form videos)
 
 Contact:
 support@fitquest.space
