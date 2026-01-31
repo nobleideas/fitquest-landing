@@ -178,7 +178,7 @@ class PromoVideoCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           const Text(
-            'Tip: Tap Play to open fullscreen automatically.',
+            'Tap Play to open fullscreen automatically. Closing fullscreen stops the video.',
             style: TextStyle(color: Color(0xFF6B7280), fontSize: 12),
           ),
         ],
@@ -200,10 +200,12 @@ class _NativeHtmlVideoState extends State<_NativeHtmlVideo> {
 
   html.VideoElement? _video;
   StreamSubscription<html.Event>? _onPlaySub;
-  StreamSubscription<html.Event>? _fsSub;
+  StreamSubscription<html.Event>? _onPauseSub;
+  StreamSubscription<html.Event>? _onEndedSub;
 
-  bool _enteredFullscreen = false;
+  Timer? _fullscreenPoller;
   bool _requestingFullscreen = false;
+  bool _wasFullscreen = false; // we set true once fullscreen is entered successfully
 
   @override
   void initState() {
@@ -233,37 +235,40 @@ class _NativeHtmlVideoState extends State<_NativeHtmlVideo> {
 
     _video = video;
 
-    // When user hits Play, attempt to enter fullscreen.
+    // When user hits Play, attempt to enter fullscreen immediately (best-effort).
     _onPlaySub = video.onPlay.listen((_) async {
-      // If already fullscreen, nothing to do.
-      if (html.document.fullscreenElement != null) return;
-      // Avoid spamming requests.
-      if (_requestingFullscreen) return;
+      _startFullscreenPolling();
 
+      // If already in fullscreen, don't request again.
+      if (_isInFullscreen()) return;
+
+      if (_requestingFullscreen) return;
       _requestingFullscreen = true;
+
       try {
         await video.requestFullscreen();
-        _enteredFullscreen = true;
+        _wasFullscreen = true;
       } catch (_) {
-        // Browser may block programmatic fullscreen. That's ok—video will just play inline.
-        _enteredFullscreen = false;
+        // Browser may block programmatic fullscreen; video will play inline.
+        _wasFullscreen = false;
       } finally {
         _requestingFullscreen = false;
       }
     });
 
-    // When fullscreen closes, stop the video (pause + reset).
-    _fsSub = html.document.onFullscreenChange.listen((_) {
-      final isFullscreen = html.document.fullscreenElement != null;
+    // If user pauses, stop polling (no need to keep checking).
+    _onPauseSub = video.onPause.listen((_) {
+      _stopFullscreenPolling();
+      _wasFullscreen = false;
+    });
 
-      // Only stop if this instance successfully entered fullscreen previously.
-      if (!isFullscreen && _enteredFullscreen) {
-        try {
-          video.pause();
-          video.currentTime = 0;
-        } catch (_) {}
-        _enteredFullscreen = false;
-      }
+    // If video ends, stop polling and reset.
+    _onEndedSub = video.onEnded.listen((_) {
+      _stopFullscreenPolling();
+      _wasFullscreen = false;
+      try {
+        video.currentTime = 0;
+      } catch (_) {}
     });
 
     ui_web.platformViewRegistry.registerViewFactory(
@@ -272,10 +277,40 @@ class _NativeHtmlVideoState extends State<_NativeHtmlVideo> {
     );
   }
 
+  bool _isInFullscreen() {
+    // FullscreenElement is the most standard check; may be null on some implementations,
+    // but our polling still catches the exit condition once it *was* fullscreen.
+    return html.document.fullscreenElement != null;
+  }
+
+  void _startFullscreenPolling() {
+    _fullscreenPoller ??= Timer.periodic(const Duration(milliseconds: 200), (_) {
+      final v = _video;
+      if (v == null) return;
+
+      // If we successfully entered fullscreen earlier and now fullscreen is gone, stop video.
+      if (_wasFullscreen && !_isInFullscreen()) {
+        try {
+          v.pause();
+          v.currentTime = 0;
+        } catch (_) {}
+        _wasFullscreen = false;
+        _stopFullscreenPolling();
+      }
+    });
+  }
+
+  void _stopFullscreenPolling() {
+    _fullscreenPoller?.cancel();
+    _fullscreenPoller = null;
+  }
+
   @override
   void dispose() {
+    _stopFullscreenPolling();
     _onPlaySub?.cancel();
-    _fsSub?.cancel();
+    _onPauseSub?.cancel();
+    _onEndedSub?.cancel();
     try {
       _video?.pause();
     } catch (_) {}
