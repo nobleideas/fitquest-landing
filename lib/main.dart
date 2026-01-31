@@ -7,7 +7,7 @@ import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:go_router/go_router.dart';
 
 void main() {
-  usePathUrlStrategy(); // removes #/ from URLs on Flutter web
+  usePathUrlStrategy();
   runApp(const FitQuestLanding());
 }
 
@@ -42,7 +42,6 @@ class HomePage extends StatelessWidget {
     return Scaffold(
       body: Center(
         child: ConstrainedBox(
-          // Wider so the videos can be BIG
           constraints: const BoxConstraints(maxWidth: 1200),
           child: ListView(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
@@ -68,10 +67,7 @@ class HomePage extends StatelessWidget {
                 runSpacing: 12,
                 children: [
                   ElevatedButton(
-                    onPressed: () {
-                      // TODO: Replace with your Play Store listing once you have it.
-                      // Example: https://play.google.com/store/apps/details?id=YOUR.PACKAGE
-                    },
+                    onPressed: () {},
                     child: const Text('Download on Google Play'),
                   ),
                   OutlinedButton(
@@ -90,23 +86,19 @@ class HomePage extends StatelessWidget {
               const SizedBox(height: 38),
               const _SectionHeader(
                 title: 'See Fit Quest in action',
-                subtitle:
-                    'Two quick clips that show the vibe and the core flows.',
+                subtitle: 'Two quick clips that show the vibe and the core flows.',
               ),
               const SizedBox(height: 16),
 
-              // BIG by default: stacked full-width cards
               const PromoVideoCard(
                 title: 'Promo video #1',
-                description:
-                    '54-second overview: account setup, friends, sharing, importing.',
-                assetPath: 'assets/videos/fq-promo1.mp4',
+                description: '54-second overview of the Fit Quest experience.',
+                assetPath: 'assets/videos/promo1.mp4',
               ),
               const SizedBox(height: 20),
               const PromoVideoCard(
                 title: 'Promo video #2',
-                description:
-                    '1:20 deep dive: exercise history, suggested sets, form video + import.',
+                description: '1:20 deep dive into exercise history and form videos.',
                 assetPath: 'assets/videos/promo2.mp4',
               ),
 
@@ -168,10 +160,7 @@ class PromoVideoCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
-          ),
+          Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
           const SizedBox(height: 6),
           Text(
             description,
@@ -183,29 +172,17 @@ class PromoVideoCard extends StatelessWidget {
           ),
           const SizedBox(height: 14),
 
-          // BIG 16:9 frame, native browser controls => fullscreen button works
           ClipRRect(
             borderRadius: BorderRadius.circular(14),
             child: AspectRatio(
               aspectRatio: 16 / 9,
               child: Container(
-                color: const Color(0xFF0B1220),
+                color: Colors.black,
                 child: kIsWeb
                     ? _NativeHtmlVideo(assetPath: assetPath)
-                    : const Center(
-                        child: Text(
-                          'Video preview is available on web.',
-                          style: TextStyle(color: Colors.white70),
-                        ),
-                      ),
+                    : const SizedBox.shrink(),
               ),
             ),
-          ),
-
-          const SizedBox(height: 10),
-          const Text(
-            'Tip: Use the fullscreen icon in the video controls.',
-            style: TextStyle(color: Color(0xFF6B7280), fontSize: 12),
           ),
         ],
       ),
@@ -229,21 +206,23 @@ class _NativeHtmlVideoState extends State<_NativeHtmlVideo> {
   void initState() {
     super.initState();
 
-    _viewType =
-        'fq-video-${widget.assetPath}-${DateTime.now().microsecondsSinceEpoch}';
-
-    final src = 'assets/${widget.assetPath}'; // ✅ THIS IS THE FIX
+    _viewType = 'fq-video-${widget.assetPath}-${DateTime.now().microsecondsSinceEpoch}';
+    final src = 'assets/${widget.assetPath}';
 
     final v = html.VideoElement()
       ..src = src
       ..controls = true
-      ..autoplay = false
-      ..loop = false
       ..preload = 'metadata'
       ..style.width = '100%'
       ..style.height = '100%'
+      ..style.maxWidth = '100%'
+      ..style.maxHeight = '100%'
       ..style.objectFit = 'contain'
-      ..setAttribute('playsinline', 'true');
+      ..style.transform = 'none'
+      ..style.setProperty('-webkit-transform', 'none')
+      ..style.backgroundColor = 'black'
+      ..setAttribute('playsinline', 'true')
+      ..setAttribute('webkit-playsinline', 'true');
 
     _video = v;
 
@@ -277,10 +256,7 @@ class _SectionHeader extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
-        ),
+        Text(title, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),
         const SizedBox(height: 6),
         Text(
           subtitle,
@@ -302,7 +278,8 @@ class PrivacyPage extends StatelessWidget {
         padding: const EdgeInsets.all(24),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 900),
-          child: const Text('''
+          child: const Text(
+            '''
 Privacy Policy – Fit Quest
 
 Last updated: 2026-01-30
@@ -310,27 +287,15 @@ Last updated: 2026-01-30
 Fit Quest provides fitness tracking and social features.
 
 Data we collect:
-- Email and username (account creation)
-- Workout data (exercises, sets, reps, weights)
-- Content you upload (such as form videos)
-- Basic diagnostics for reliability and support
-
-How we use data:
-- To provide core app functionality
-- To enable social features you choose to use
-- To improve performance and reliability
-
-Data sharing:
-- Data is stored and processed using third-party services such as Supabase.
-- We do not sell personal data.
-
-Data retention:
-- Data is retained while your account is active.
-- You may request deletion by contacting support@fitquest.space.
+- Email and username
+- Workout data
+- Uploaded content (form videos)
 
 Contact:
 support@fitquest.space
-''', style: TextStyle(height: 1.5)),
+''',
+            style: TextStyle(height: 1.5),
+          ),
         ),
       ),
     );
