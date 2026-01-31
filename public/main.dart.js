@@ -37758,30 +37758,24 @@ p.b_()
 s="fq-video-"+p.a.c+"-"+1000*Date.now()
 p.d!==$&&A.bj()
 p.d=s
-r=document.createElement("video")
+r=p.a.c
+q=document.createElement("video")
+q.src="assets/"+r
+q.controls=!0
+q.autoplay=!1
+q.loop=!1
+q.preload="metadata"
+r=q.style
+r.width="100%"
+r=q.style
+r.height="100%"
+r=q.style
 r.toString
-r.src=p.a.c
-r.controls=!0
-r.autoplay=!1
-r.loop=!1
-r.preload="metadata"
-q=r.style
-q.width="100%"
-q=r.style
-q.height="100%"
-q=r.style
-q.border="0"
-q=r.style
-q.margin="0"
-q=r.style
-q.padding="0"
-q=r.style
-q.toString
-B.lo.a7b(q,B.lo.XY(q,"object-fit"),"cover","")
-r.setAttribute("playsinline","true")
-p.e=r
+B.lo.a7b(r,B.lo.XY(r,"object-fit"),"contain","")
+q.setAttribute("playsinline","true")
+p.e=q
 $.aw0()
-$.E4().Ed(s,new A.afB(r),!0)},
+$.E4().Ed(s,new A.afB(q),!0)},
 l(){var s=this.e
 if(s!=null)s.pause()
 this.e=null

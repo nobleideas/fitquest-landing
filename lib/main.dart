@@ -1,7 +1,6 @@
 import 'dart:html' as html;
 import 'dart:ui_web' as ui_web;
 
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
@@ -91,20 +90,23 @@ class HomePage extends StatelessWidget {
               const SizedBox(height: 38),
               const _SectionHeader(
                 title: 'See Fit Quest in action',
-                subtitle: 'Two quick clips that show the vibe and the core flows.',
+                subtitle:
+                    'Two quick clips that show the vibe and the core flows.',
               ),
               const SizedBox(height: 16),
 
               // BIG by default: stacked full-width cards
               const PromoVideoCard(
                 title: 'Promo video #1',
-                description: '54-second overview: account setup, friends, sharing, importing.',
+                description:
+                    '54-second overview: account setup, friends, sharing, importing.',
                 assetPath: 'assets/videos/promo1.mp4',
               ),
               const SizedBox(height: 20),
               const PromoVideoCard(
                 title: 'Promo video #2',
-                description: '1:20 deep dive: exercise history, suggested sets, form video + import.',
+                description:
+                    '1:20 deep dive: exercise history, suggested sets, form video + import.',
                 assetPath: 'assets/videos/promo2.mp4',
               ),
 
@@ -166,7 +168,10 @@ class PromoVideoCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
+          Text(
+            title,
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+          ),
           const SizedBox(height: 6),
           Text(
             description,
@@ -224,30 +229,28 @@ class _NativeHtmlVideoState extends State<_NativeHtmlVideo> {
   void initState() {
     super.initState();
 
-    // Unique view type per widget instance
-    _viewType = 'fq-video-${widget.assetPath}-${DateTime.now().microsecondsSinceEpoch}';
+    _viewType =
+        'fq-video-${widget.assetPath}-${DateTime.now().microsecondsSinceEpoch}';
 
-    // Use native HTML5 <video> for reliable fullscreen + controls on web
+    final src = 'assets/${widget.assetPath}'; // ✅ THIS IS THE FIX
+
     final v = html.VideoElement()
-      ..src = widget.assetPath
+      ..src = src
       ..controls = true
       ..autoplay = false
       ..loop = false
       ..preload = 'metadata'
       ..style.width = '100%'
       ..style.height = '100%'
-      ..style.border = '0'
-      ..style.margin = '0'
-      ..style.padding = '0'
-      ..style.objectFit = 'cover'
+      ..style.objectFit = 'contain'
       ..setAttribute('playsinline', 'true');
 
     _video = v;
 
-    // Register with Flutter web
-    // ignore: undefined_prefixed_name
-    ui_web.platformViewRegistry.registerViewFactory(_viewType, (int viewId) => v);
-
+    ui_web.platformViewRegistry.registerViewFactory(
+      _viewType,
+      (int viewId) => v,
+    );
   }
 
   @override
@@ -274,7 +277,10 @@ class _SectionHeader extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),
+        Text(
+          title,
+          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
+        ),
         const SizedBox(height: 6),
         Text(
           subtitle,
@@ -296,8 +302,7 @@ class PrivacyPage extends StatelessWidget {
         padding: const EdgeInsets.all(24),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 900),
-          child: const Text(
-            '''
+          child: const Text('''
 Privacy Policy – Fit Quest
 
 Last updated: 2026-01-30
@@ -325,9 +330,7 @@ Data retention:
 
 Contact:
 support@fitquest.space
-''',
-            style: TextStyle(height: 1.5),
-          ),
+''', style: TextStyle(height: 1.5)),
         ),
       ),
     );
