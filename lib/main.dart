@@ -66,9 +66,7 @@ class HomePage extends StatelessWidget {
                 runSpacing: 12,
                 children: [
                   ElevatedButton(
-                    onPressed: () {
-                      // Add Play Store link when ready
-                    },
+                    onPressed: () {},
                     child: const Text('Download on Google Play'),
                   ),
                   OutlinedButton(
@@ -176,11 +174,6 @@ class PromoVideoCard extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 10),
-          const Text(
-            'Tap Play to open fullscreen automatically. Closing fullscreen stops the video.',
-            style: TextStyle(color: Color(0xFF6B7280), fontSize: 12),
-          ),
         ],
       ),
     );
@@ -197,120 +190,64 @@ class _NativeHtmlVideo extends StatefulWidget {
 
 class _NativeHtmlVideoState extends State<_NativeHtmlVideo> {
   late final String _viewType;
-
   html.VideoElement? _video;
-  StreamSubscription<html.Event>? _onPlaySub;
-  StreamSubscription<html.Event>? _onPauseSub;
-  StreamSubscription<html.Event>? _onEndedSub;
-
-  Timer? _fullscreenPoller;
-  bool _requestingFullscreen = false;
-  bool _wasFullscreen = false; // we set true once fullscreen is entered successfully
+  Timer? _poller;
+  bool _wasFullscreen = false;
+  bool _requesting = false;
 
   @override
   void initState() {
     super.initState();
 
     _viewType = 'fq-video-${widget.assetPath}-${DateTime.now().microsecondsSinceEpoch}';
-
-    // Flutter web serves assets under /assets/...
-    // If widget.assetPath is "assets/videos/promo1.mp4", served URL becomes:
-    //   /assets/assets/videos/promo1.mp4
     final src = 'assets/${widget.assetPath}';
 
     final video = html.VideoElement()
       ..src = src
       ..controls = true
       ..preload = 'metadata'
-      ..autoplay = false
-      ..loop = false
-      ..muted = false
       ..style.width = '100%'
       ..style.height = '100%'
       ..style.objectFit = 'contain'
-      ..style.backgroundColor = 'black'
       ..setAttribute('playsinline', 'true')
-      ..setAttribute('webkit-playsinline', 'true')
-      ..setAttribute('controlsList', 'nodownload noplaybackrate');
+      ..setAttribute('webkit-playsinline', 'true');
 
     _video = video;
 
-    // When user hits Play, attempt to enter fullscreen immediately (best-effort).
-    _onPlaySub = video.onPlay.listen((_) async {
-      _startFullscreenPolling();
-
-      // If already in fullscreen, don't request again.
-      if (_isInFullscreen()) return;
-
-      if (_requestingFullscreen) return;
-      _requestingFullscreen = true;
-
+    video.onPlay.listen((_) async {
+      _startPolling();
+      if (_requesting) return;
+      _requesting = true;
       try {
         await video.requestFullscreen();
         _wasFullscreen = true;
       } catch (_) {
-        // Browser may block programmatic fullscreen; video will play inline.
         _wasFullscreen = false;
       } finally {
-        _requestingFullscreen = false;
+        _requesting = false;
       }
     });
 
-    // If user pauses, stop polling (no need to keep checking).
-    _onPauseSub = video.onPause.listen((_) {
-      _stopFullscreenPolling();
-      _wasFullscreen = false;
-    });
-
-    // If video ends, stop polling and reset.
-    _onEndedSub = video.onEnded.listen((_) {
-      _stopFullscreenPolling();
-      _wasFullscreen = false;
-      try {
-        video.currentTime = 0;
-      } catch (_) {}
-    });
-
-    ui_web.platformViewRegistry.registerViewFactory(
-      _viewType,
-      (int viewId) => video,
-    );
+    ui_web.platformViewRegistry.registerViewFactory(_viewType, (int viewId) => video);
   }
 
-  bool _isInFullscreen() {
-    // FullscreenElement is the most standard check; may be null on some implementations,
-    // but our polling still catches the exit condition once it *was* fullscreen.
-    return html.document.fullscreenElement != null;
-  }
-
-  void _startFullscreenPolling() {
-    _fullscreenPoller ??= Timer.periodic(const Duration(milliseconds: 200), (_) {
-      final v = _video;
-      if (v == null) return;
-
-      // If we successfully entered fullscreen earlier and now fullscreen is gone, stop video.
-      if (_wasFullscreen && !_isInFullscreen()) {
+  void _startPolling() {
+    _poller ??= Timer.periodic(const Duration(milliseconds: 200), (_) {
+      if (_wasFullscreen && html.document.fullscreenElement == null) {
         try {
-          v.pause();
-          v.currentTime = 0;
+          _video?.pause();
+          _video?.currentTime = 0;
         } catch (_) {}
         _wasFullscreen = false;
-        _stopFullscreenPolling();
+        _poller?.cancel();
+        _poller = null;
       }
     });
-  }
-
-  void _stopFullscreenPolling() {
-    _fullscreenPoller?.cancel();
-    _fullscreenPoller = null;
   }
 
   @override
   void dispose() {
-    _stopFullscreenPolling();
-    _onPlaySub?.cancel();
-    _onPauseSub?.cancel();
-    _onEndedSub?.cancel();
+    _poller?.cancel();
     try {
       _video?.pause();
     } catch (_) {}
@@ -360,17 +297,54 @@ Privacy Policy – Fit Quest
 
 Last updated: 2026-01-30
 
-Fit Quest provides fitness tracking and social features.
+Fit Quest ("we", "our", or "us") provides a social, gamified fitness tracking application. 
+This Privacy Policy explains how we collect, use, and protect your information.
 
-Data we collect:
-- Email and username
-- Workout data
-- Uploaded content (form videos)
+Information We Collect
+• Account information such as email address and username
+• Workout and fitness data including exercises, sets, reps, weights, and timestamps
+• Content you upload such as exercise form videos
+• Social data such as friends, shared workouts, and interactions you choose to enable
+• Basic diagnostics and usage data for reliability, debugging, and support
 
-Contact:
+How We Use Your Information
+• To provide and maintain core app functionality
+• To personalize your experience and generate workout suggestions
+• To enable social features you choose to use
+• To improve performance, stability, and product features
+• To respond to support requests and user feedback
+
+Data Storage and Security
+• Data is stored and processed using trusted third-party infrastructure providers, including Supabase
+• Reasonable technical and organizational safeguards are used to protect your data
+• No system can be guaranteed 100% secure, but we strive to follow industry best practices
+
+Data Sharing
+• We do not sell your personal data
+• Data is shared only as necessary to operate the service or when required by law
+• Content you choose to share with friends is visible according to your in-app settings
+
+Data Retention
+• Your data is retained while your account is active
+• You may request account and data deletion by contacting support@fitquest.space
+
+Children’s Privacy
+• Fit Quest is not intended for children under 13
+• We do not knowingly collect personal information from children
+
+Your Rights
+• You may access, update, or delete your account information
+• You may request clarification on how your data is used
+• You may withdraw consent for certain features by disabling them in the app
+
+Changes to This Policy
+• This policy may be updated from time to time
+• Changes will be reflected on this page with an updated revision date
+
+Contact
 support@fitquest.space
 ''',
-            style: TextStyle(height: 1.5),
+            style: TextStyle(height: 1.55),
           ),
         ),
       ),
