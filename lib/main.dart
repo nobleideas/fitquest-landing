@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:html' as html;
 import 'dart:ui_web' as ui_web;
 
@@ -89,6 +88,7 @@ class HomePage extends StatelessWidget {
                 subtitle: 'Two quick clips that show the vibe and the core flows.',
               ),
               const SizedBox(height: 16),
+
               const PromoVideoCard(
                 title: 'Promo video #1',
                 description: '54-second overview of the Fit Quest experience.',
@@ -100,6 +100,7 @@ class HomePage extends StatelessWidget {
                 description: '1:20 deep dive into exercise history and form videos.',
                 assetPath: 'assets/videos/promo2.mp4',
               ),
+
               const SizedBox(height: 34),
               const Divider(height: 1),
               const SizedBox(height: 14),
@@ -126,7 +127,7 @@ class HomePage extends StatelessWidget {
   }
 }
 
-class PromoVideoCard extends StatelessWidget {
+class PromoVideoCard extends StatefulWidget {
   final String title;
   final String description;
   final String assetPath;
@@ -137,6 +138,44 @@ class PromoVideoCard extends StatelessWidget {
     required this.description,
     required this.assetPath,
   });
+
+  @override
+  State<PromoVideoCard> createState() => _PromoVideoCardState();
+}
+
+class _PromoVideoCardState extends State<PromoVideoCard> {
+  html.VideoElement? _video; // the inline video element
+
+  void _openOverlay() {
+    final v = _video;
+    if (v == null) return;
+
+    // Pause inline video so we don't get double-audio
+    try {
+      v.pause();
+    } catch (_) {}
+
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Close video',
+      barrierColor: const Color(0xDD000000),
+      transitionDuration: const Duration(milliseconds: 160),
+      pageBuilder: (ctx, a1, a2) {
+        return _VideoOverlay(
+          original: v,
+          title: widget.title,
+        );
+      },
+      transitionBuilder: (ctx, anim, sec, child) {
+        final t = Curves.easeOut.transform(anim.value);
+        return Transform.scale(
+          scale: 0.98 + (0.02 * t),
+          child: Opacity(opacity: t, child: child),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -157,10 +196,10 @@ class PromoVideoCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
+          Text(widget.title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
           const SizedBox(height: 6),
           Text(
-            description,
+            widget.description,
             style: const TextStyle(
               color: Color(0xFF4B5563),
               height: 1.35,
@@ -169,7 +208,6 @@ class PromoVideoCard extends StatelessWidget {
           ),
           const SizedBox(height: 14),
 
-          // The video frame (no overlay controls — avoids tap conflicts)
           ClipRRect(
             borderRadius: BorderRadius.circular(14),
             child: AspectRatio(
@@ -177,7 +215,10 @@ class PromoVideoCard extends StatelessWidget {
               child: Container(
                 color: Colors.black,
                 child: kIsWeb
-                    ? _NativeHtmlVideoHost(assetPath: assetPath)
+                    ? _NativeHtmlInlineVideo(
+                        assetPath: widget.assetPath,
+                        onCreated: (el) => _video = el,
+                      )
                     : const Center(
                         child: Text(
                           'Video is available on web.',
@@ -190,12 +231,21 @@ class PromoVideoCard extends StatelessWidget {
 
           const SizedBox(height: 12),
 
-          // Fullscreen button OUTSIDE the video element (so it always registers taps)
+          // Tap-safe: button is BELOW the video (no fighting scrubber / cast / 3-dots)
           Align(
             alignment: Alignment.centerRight,
-            child: kIsWeb
-                ? _FullscreenButton(assetPath: assetPath)
-                : const SizedBox.shrink(),
+            child: SizedBox(
+              height: 44,
+              child: OutlinedButton.icon(
+                onPressed: kIsWeb ? _openOverlay : null,
+                icon: const Icon(Icons.open_in_full),
+                label: const Text('Fullscreen'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -203,17 +253,22 @@ class PromoVideoCard extends StatelessWidget {
   }
 }
 
-/// Hosts the HTML <video> element. Kept separate so the fullscreen button can be
-/// outside the video and not fight with native controls.
-class _NativeHtmlVideoHost extends StatefulWidget {
+/// Inline <video> element that behaves nicely on mobile.
+/// NOTE: This is NOT browser fullscreen. Fullscreen is handled by our overlay.
+class _NativeHtmlInlineVideo extends StatefulWidget {
   final String assetPath;
-  const _NativeHtmlVideoHost({required this.assetPath});
+  final void Function(html.VideoElement el) onCreated;
+
+  const _NativeHtmlInlineVideo({
+    required this.assetPath,
+    required this.onCreated,
+  });
 
   @override
-  State<_NativeHtmlVideoHost> createState() => _NativeHtmlVideoHostState();
+  State<_NativeHtmlInlineVideo> createState() => _NativeHtmlInlineVideoState();
 }
 
-class _NativeHtmlVideoHostState extends State<_NativeHtmlVideoHost> {
+class _NativeHtmlInlineVideoState extends State<_NativeHtmlInlineVideo> {
   late final String _viewType;
   html.VideoElement? _video;
 
@@ -221,7 +276,7 @@ class _NativeHtmlVideoHostState extends State<_NativeHtmlVideoHost> {
   void initState() {
     super.initState();
 
-    _viewType = 'fq-video-${widget.assetPath}-${DateTime.now().microsecondsSinceEpoch}';
+    _viewType = 'fq-inline-${widget.assetPath}-${DateTime.now().microsecondsSinceEpoch}';
 
     // Flutter web serves assets under /assets/...
     // If assetPath is "assets/videos/promo1.mp4", served URL is:
@@ -245,27 +300,22 @@ class _NativeHtmlVideoHostState extends State<_NativeHtmlVideoHost> {
       ..style.setProperty('-webkit-transform', 'none')
       ..setAttribute('playsinline', 'true')
       ..setAttribute('webkit-playsinline', 'true')
-      // Reduce “cast / remote playback” prompts where supported:
+      // Reduce cast prompts where supported:
       ..setAttribute('disableRemotePlayback', 'true')
       ..setAttribute('x-webkit-airplay', 'deny')
       ..setAttribute('controlsList', 'nodownload noplaybackrate');
 
     _video = v;
+    widget.onCreated(v);
 
-    // Register the element for HtmlElementView
     ui_web.platformViewRegistry.registerViewFactory(_viewType, (int viewId) => v);
-
-    // Expose the element globally by key so the button can find it reliably.
-    _VideoRegistry.instance.register(widget.assetPath, v);
   }
 
   @override
   void dispose() {
-    final v = _video;
-    if (v != null) {
-      v.pause();
-      _VideoRegistry.instance.unregister(widget.assetPath, v);
-    }
+    try {
+      _video?.pause();
+    } catch (_) {}
     _video = null;
     super.dispose();
   }
@@ -276,128 +326,142 @@ class _NativeHtmlVideoHostState extends State<_NativeHtmlVideoHost> {
   }
 }
 
-/// A big tap-friendly fullscreen button placed BELOW the video so it doesn't
-/// fight with scrubber / three-dot menu / cast UI.
-class _FullscreenButton extends StatefulWidget {
-  final String assetPath;
-  const _FullscreenButton({required this.assetPath});
+/// Full-screen modal overlay that stays inside the page.
+/// This avoids Android Chrome's true fullscreen rotation weirdness.
+class _VideoOverlay extends StatefulWidget {
+  final html.VideoElement original;
+  final String title;
+
+  const _VideoOverlay({
+    required this.original,
+    required this.title,
+  });
 
   @override
-  State<_FullscreenButton> createState() => _FullscreenButtonState();
+  State<_VideoOverlay> createState() => _VideoOverlayState();
 }
 
-class _FullscreenButtonState extends State<_FullscreenButton> {
-  StreamSubscription<html.Event>? _fsSub;
+class _VideoOverlayState extends State<_VideoOverlay> {
+  late final String _viewType;
+  html.VideoElement? _overlayVideo;
 
   @override
   void initState() {
     super.initState();
 
-    // Unlock orientation on fullscreen exit (best-effort)
-    _fsSub = html.document.onFullscreenChange.listen((_) {
-      final isFs = html.document.fullscreenElement != null;
-      if (!isFs) {
-        _unlockOrientationBestEffort();
-      }
-    });
+    _viewType = 'fq-overlay-${DateTime.now().microsecondsSinceEpoch}';
+
+    // Clone a new <video> element pointing at the same source.
+    // This avoids weird state carryover from inline controls.
+    final src = widget.original.currentSrc.isNotEmpty ? widget.original.currentSrc : widget.original.src;
+
+    final v = html.VideoElement()
+      ..src = src
+      ..controls = true
+      ..preload = 'auto'
+      ..autoplay = true
+      ..loop = false
+      ..muted = false
+      ..style.width = '100%'
+      ..style.height = '100%'
+      ..style.maxWidth = '100%'
+      ..style.maxHeight = '100%'
+      ..style.objectFit = 'contain'
+      ..style.backgroundColor = 'black'
+      ..style.transform = 'none'
+      ..style.setProperty('-webkit-transform', 'none')
+      ..setAttribute('playsinline', 'true')
+      ..setAttribute('webkit-playsinline', 'true')
+      ..setAttribute('disableRemotePlayback', 'true')
+      ..setAttribute('x-webkit-airplay', 'deny')
+      ..setAttribute('controlsList', 'nodownload noplaybackrate');
+
+    _overlayVideo = v;
+    ui_web.platformViewRegistry.registerViewFactory(_viewType, (int viewId) => v);
   }
 
   @override
   void dispose() {
-    _fsSub?.cancel();
+    try {
+      _overlayVideo?.pause();
+    } catch (_) {}
+    _overlayVideo = null;
     super.dispose();
-  }
-
-  Future<void> _goFullscreen() async {
-    final video = _VideoRegistry.instance.get(widget.assetPath);
-    if (video == null) return;
-
-    // Pause + play around fullscreen request sometimes stabilizes behavior on Android Chrome
-    // (best-effort; safe if it fails).
-    try {
-      video.pause();
-    } catch (_) {}
-
-    // Request fullscreen on the VIDEO element (preferred)
-    try {
-      await video.requestFullscreen();
-    } catch (_) {
-      // Fallback: request fullscreen on document element
-      try {
-        await html.document.documentElement?.requestFullscreen();
-      } catch (_) {}
-    }
-
-    // Try locking to landscape (works only in some browsers, and only after a user gesture)
-    await _lockOrientationBestEffort();
-
-    // Resume playback (optional)
-    try {
-      await video.play();
-    } catch (_) {}
-  }
-
-  Future<void> _lockOrientationBestEffort() async {
-    try {
-      final orientation = html.window.screen?.orientation;
-      if (orientation != null) {
-        // Try the more specific mode first (some browsers prefer it)
-        try {
-          await orientation.lock('landscape-primary');
-        } catch (_) {
-          await orientation.lock('landscape');
-        }
-      }
-    } catch (_) {
-      // ignore
-    }
-  }
-
-  void _unlockOrientationBestEffort() {
-    try {
-      final orientation = html.window.screen?.orientation;
-      if (orientation != null) {
-        orientation.unlock();
-      }
-    } catch (_) {
-      // ignore
-    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 44,
-      child: OutlinedButton.icon(
-        onPressed: _goFullscreen,
-        icon: const Icon(Icons.open_in_full),
-        label: const Text('Fullscreen'),
-        style: OutlinedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    return SafeArea(
+      child: Material(
+        color: Colors.transparent,
+        child: Stack(
+          children: [
+            // Backdrop tap to close
+            Positioned.fill(
+              child: GestureDetector(
+                onTap: () => Navigator.of(context).pop(),
+                child: const ColoredBox(color: Colors.transparent),
+              ),
+            ),
+
+            // Centered video container
+            Positioned.fill(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1200),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Top bar
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                widget.title,
+                                style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            IconButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              icon: const Icon(Icons.close, color: Colors.white),
+                              tooltip: 'Close',
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+
+                        // Big video area
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: AspectRatio(
+                            aspectRatio: 16 / 9,
+                            child: Container(
+                              color: Colors.black,
+                              child: HtmlElementView(viewType: _viewType),
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 10),
+                        const Text(
+                          'Tip: Rotate your phone to landscape for the biggest view.',
+                          style: TextStyle(color: Color(0xFFCBD5E1), fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
-}
-
-/// Simple registry so the fullscreen button can reliably find the correct
-/// VideoElement instance without placing the button over HtmlElementView.
-class _VideoRegistry {
-  _VideoRegistry._();
-  static final instance = _VideoRegistry._();
-
-  final Map<String, html.VideoElement> _byKey = {};
-
-  void register(String key, html.VideoElement el) {
-    _byKey[key] = el;
-  }
-
-  void unregister(String key, html.VideoElement el) {
-    if (_byKey[key] == el) _byKey.remove(key);
-  }
-
-  html.VideoElement? get(String key) => _byKey[key];
 }
 
 class _SectionHeader extends StatelessWidget {
