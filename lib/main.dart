@@ -334,7 +334,7 @@ Data Storage and Security
 Data Sharing
 • We do not sell your personal data
 • Data is shared only as necessary to operate the service or when required by law
-• Content you choose to share with friends is visible according to your in-app settings
+• Content you choose to share may be visible to other users depending on the nature of the feature you are using (for example, friends or social features).
 
 Data Retention
 • Your data is retained while your account is active
@@ -347,7 +347,7 @@ Children’s Privacy
 Your Rights
 • You may access, update, or delete your account information
 • You may request clarification on how your data is used
-• You may withdraw consent for certain features by disabling them in the app
+• You may stop using certain features at any time by choosing not to engage with them or by deleting your account.
 
 Changes to This Policy
 • This policy may be updated from time to time

@@ -37776,7 +37776,7 @@ $2(a,b){return B.HJ},
 $S:268}
 A.qp.prototype={
 O(a){var s,r=null,q=t.E
-q=A.c([B.Ps,B.x7,B.Px,B.x8,new A.Li(12,12,A.c([new A.Ge(new A.a_N(),r,r,r,r,r,r,!1,r,!0,r,B.Pt,r),A.aqC(B.k_,new A.a_O(a)),A.aqC(B.Pu,new A.a_P())],q),r),B.jP,B.Py,B.x9,B.Sl,B.K7,B.HM,B.x8,B.HL,B.x9,B.Bb,B.x7,A.aBJ(A.c([A.aaf(B.k_,new A.a_Q(a),r),B.x6,B.Pp,B.x6,A.kj("\xa9 "+A.aqQ(new A.hO(Date.now(),0,!1))+" Fit Quest",r,r,B.xv)],q),B.bj,B.cF)],q)
+q=A.c([B.Pt,B.x7,B.Px,B.x8,new A.Li(12,12,A.c([new A.Ge(new A.a_N(),r,r,r,r,r,r,!1,r,!0,r,B.Pu,r),A.aqC(B.k_,new A.a_O(a)),A.aqC(B.Pv,new A.a_P())],q),r),B.jP,B.Py,B.x9,B.Sl,B.K7,B.HM,B.x8,B.HL,B.x9,B.Bb,B.x7,A.aBJ(A.c([A.aaf(B.k_,new A.a_Q(a),r),B.x6,B.Pp,B.x6,A.kj("\xa9 "+A.aqQ(new A.hO(Date.now(),0,!1))+" Fit Quest",r,r,B.xv)],q),B.bj,B.cF)],q)
 s=A.az([null,0],t.LO,t.S)
 return A.am4(r,A.jw(new A.fB(B.yB,new A.Ho(new A.a9x(!0,!0,!0,q,s),B.BB,B.b_,!1,r,r,B.yd,!1,r,17,B.ai,r,r,B.a7,B.aj,r),r),r,r))}}
 A.a_N.prototype={
@@ -37877,7 +37877,7 @@ A.R8.prototype={
 O(a){var s=null
 return A.vf(A.c([A.kj("See Fit Quest in action",s,s,B.N4),B.xa,A.kj("Two short clips showing the core experience.",s,s,B.Mb)],t.E),B.bF,B.bn,B.cF)}}
 A.r3.prototype={
-O(a){return A.am4(A.aoi(B.k_),new A.JZ(B.BA,new A.fB(B.yC,B.Pw,null),null))}}
+O(a){return A.am4(A.aoi(B.k_),new A.JZ(B.BA,new A.fB(B.yC,B.Pq,null),null))}}
 A.iu.prototype={
 I(){return"AnimationStatus."+this.b},
 gil(){var s,r=this
@@ -74584,7 +74584,7 @@ A.QW.prototype={}
 A.qc.prototype={
 O(a){var s=null,r=this.c
 r=r==null?s:"GoException: "+r.a
-return A.arc(!0,A.jw(A.vf(A.c([B.Pq,B.jP,A.kj(r==null?"page not found":r,s,s,s),B.jP,new A.A1(new A.Z3(a),B.Pv,s)],t.E),B.bj,B.j9,B.cF),s,s),!0)}}
+return A.arc(!0,A.jw(A.vf(A.c([B.Pr,B.jP,A.kj(r==null?"page not found":r,s,s,s),B.jP,new A.A1(new A.Z3(a),B.Pw,s)],t.E),B.bj,B.j9,B.cF),s,s),!0)}}
 A.Z3.prototype={
 $0(){return A.a_w(this.a).rL(0,"/",null)},
 $S:0}
@@ -74631,7 +74631,7 @@ return A.dr(s,this.$ti.h("eC<1>").a(this.c).x,!1,s,!1,!0,s,s,s,s,s,s,s,s,s,s,s,s
 v4(a,b,c,d){return this.$ti.h("eC<1>").a(this.c).CW.$4(a,b,c,d)}}
 A.oc.prototype={}
 A.qI.prototype={
-O(a){var s=null,r=A.aoi(B.Pr),q=this.c
+O(a){var s=null,r=A.aoi(B.Ps),q=this.c
 q=q==null?s:"GoException: "+q.a
 if(q==null)q="page not found"
 return A.am4(r,A.jw(A.vf(A.c([new A.yx(q,s),A.aaf(B.Po,new A.a3F(a),s)],t.E),B.bj,B.j9,B.cF),s,s))}}
@@ -80560,17 +80560,17 @@ B.Pn=new A.ds(B.Na,B.Ma,B.Nb,B.NL,B.LN,B.LV,B.Mw,B.Ny,B.MK,B.Og,B.Lg,B.LB,B.Oc,B
 B.Po=new A.ed("Home",null,null,null,null,null,null)
 B.Oz=new A.m(!0,B.le,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
 B.Pp=new A.ed("\u2022",null,B.Oz,null,null,null,null)
-B.Pq=new A.ed("Page Not Found",null,B.h2,null,null,null,null)
-B.Pr=new A.ed("Page Not Found",null,null,null,null,null,null)
+B.Ng=new A.m(!0,null,null,null,null,null,null,null,null,null,null,null,1.55,null,null,null,null,null,null,null,null,null,null,null,null,null)
+B.Pq=new A.ed('Privacy Policy \u2013 Fit Quest\n\nLast updated: 2026-01-30\n\nFit Quest ("we", "our", or "us") provides a social, gamified fitness tracking application. \nThis Privacy Policy explains how we collect, use, and protect your information.\n\nInformation We Collect\n\u2022 Account information such as email address and username\n\u2022 Workout and fitness data including exercises, sets, reps, weights, and timestamps\n\u2022 Content you upload such as exercise form videos\n\u2022 Social data such as friends, shared workouts, and interactions you choose to enable\n\u2022 Basic diagnostics and usage data for reliability, debugging, and support\n\nHow We Use Your Information\n\u2022 To provide and maintain core app functionality\n\u2022 To personalize your experience and generate workout suggestions\n\u2022 To enable social features you choose to use\n\u2022 To improve performance, stability, and product features\n\u2022 To respond to support requests and user feedback\n\nData Storage and Security\n\u2022 Data is stored and processed using trusted third-party infrastructure providers, including Supabase\n\u2022 Reasonable technical and organizational safeguards are used to protect your data\n\u2022 No system can be guaranteed 100% secure, but we strive to follow industry best practices\n\nData Sharing\n\u2022 We do not sell your personal data\n\u2022 Data is shared only as necessary to operate the service or when required by law\n\u2022 Content you choose to share may be visible to other users depending on the nature of the feature you are using (for example, friends or social features).\n\nData Retention\n\u2022 Your data is retained while your account is active\n\u2022 You may request account and data deletion by contacting support@fitquest.space\n\nChildren\u2019s Privacy\n\u2022 Fit Quest is not intended for children under 13\n\u2022 We do not knowingly collect personal information from children\n\nYour Rights\n\u2022 You may access, update, or delete your account information\n\u2022 You may request clarification on how your data is used\n\u2022 You may stop using certain features at any time by choosing not to engage with them or by deleting your account.\n\nChanges to This Policy\n\u2022 This policy may be updated from time to time\n\u2022 Changes will be reflected on this page with an updated revision date\n\nContact\nsupport@fitquest.space\n',null,B.Ng,null,null,null,null)
+B.Pr=new A.ed("Page Not Found",null,B.h2,null,null,null,null)
+B.Ps=new A.ed("Page Not Found",null,null,null,null,null,null)
 B.OM=new A.m(!0,null,null,null,null,null,44,B.f_,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
-B.Ps=new A.ed("Fit Quest",null,B.OM,null,null,null,null)
-B.Pt=new A.ed("Download on Google Play",null,null,null,null,null,null)
-B.Pu=new A.ed("Mobile Web Version",null,null,null,null,null,null)
+B.Pt=new A.ed("Fit Quest",null,B.OM,null,null,null,null)
+B.Pu=new A.ed("Download on Google Play",null,null,null,null,null,null)
+B.Pv=new A.ed("Mobile Web Version",null,null,null,null,null,null)
 B.k_=new A.ed("Privacy Policy",null,null,null,null,null,null)
 B.Ml=new A.m(!0,B.k,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
-B.Pv=new A.ed("Go to home page",null,B.Ml,null,null,null,null)
-B.Ng=new A.m(!0,null,null,null,null,null,null,null,null,null,null,null,1.55,null,null,null,null,null,null,null,null,null,null,null,null,null)
-B.Pw=new A.ed('Privacy Policy \u2013 Fit Quest\n\nLast updated: 2026-01-30\n\nFit Quest ("we", "our", or "us") provides a social, gamified fitness tracking application. \nThis Privacy Policy explains how we collect, use, and protect your information.\n\nInformation We Collect\n\u2022 Account information such as email address and username\n\u2022 Workout and fitness data including exercises, sets, reps, weights, and timestamps\n\u2022 Content you upload such as exercise form videos\n\u2022 Social data such as friends, shared workouts, and interactions you choose to enable\n\u2022 Basic diagnostics and usage data for reliability, debugging, and support\n\nHow We Use Your Information\n\u2022 To provide and maintain core app functionality\n\u2022 To personalize your experience and generate workout suggestions\n\u2022 To enable social features you choose to use\n\u2022 To improve performance, stability, and product features\n\u2022 To respond to support requests and user feedback\n\nData Storage and Security\n\u2022 Data is stored and processed using trusted third-party infrastructure providers, including Supabase\n\u2022 Reasonable technical and organizational safeguards are used to protect your data\n\u2022 No system can be guaranteed 100% secure, but we strive to follow industry best practices\n\nData Sharing\n\u2022 We do not sell your personal data\n\u2022 Data is shared only as necessary to operate the service or when required by law\n\u2022 Content you choose to share with friends is visible according to your in-app settings\n\nData Retention\n\u2022 Your data is retained while your account is active\n\u2022 You may request account and data deletion by contacting support@fitquest.space\n\nChildren\u2019s Privacy\n\u2022 Fit Quest is not intended for children under 13\n\u2022 We do not knowingly collect personal information from children\n\nYour Rights\n\u2022 You may access, update, or delete your account information\n\u2022 You may request clarification on how your data is used\n\u2022 You may withdraw consent for certain features by disabling them in the app\n\nChanges to This Policy\n\u2022 This policy may be updated from time to time\n\u2022 Changes will be reflected on this page with an updated revision date\n\nContact\nsupport@fitquest.space\n',null,B.Ng,null,null,null,null)
+B.Pw=new A.ed("Go to home page",null,B.Ml,null,null,null,null)
 B.LL=new A.m(!0,B.hT,null,null,null,null,18,null,null,null,null,null,1.4,null,null,null,null,null,null,null,null,null,null,null,null,null)
 B.Px=new A.ed("A social, gamified fitness tracker. Log workouts, share progress, and level up.",null,B.LL,null,null,null,null)
 B.Py=new A.ed("Support: support@fitquest.space",null,B.xv,null,null,null,null)
