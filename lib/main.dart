@@ -334,7 +334,7 @@ Data Storage and Security
 Data Sharing
 • We do not sell your personal data
 • Data is shared only as necessary to operate the service or when required by law
-• Content you choose to share may be visible to other users depending on the nature of the feature you are using (for example, friends or social features).
+• Content you choose to share may be visible to other users depending on the nature of the feature you are using (for example, the friends social feature).
 
 Data Retention
 • Your data is retained while your account is active
