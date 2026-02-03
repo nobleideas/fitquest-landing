@@ -21,6 +21,7 @@ class FitQuestLanding extends StatelessWidget {
       routes: [
         GoRoute(path: '/', builder: (_, __) => const HomePage()),
         GoRoute(path: '/privacy', builder: (_, __) => const PrivacyPage()),
+        GoRoute(path: '/delete', builder: (_, __) => const DeleteAccountPage()),
       ],
     );
 
@@ -32,6 +33,25 @@ class FitQuestLanding extends StatelessWidget {
         colorSchemeSeed: const Color(0xFF111827),
       ),
     );
+  }
+}
+
+void _openDeletionEmail() {
+  // Opens the user's email client with a prefilled deletion request.
+  final subject = Uri.encodeComponent('Fit Quest Account Deletion Request');
+  final body = Uri.encodeComponent(
+    'Please delete my Fit Quest account and all associated data.\n\n'
+    'Account email: \n'
+    'Additional details (optional): \n',
+  );
+
+  final mailto = 'mailto:support@fitquest.space?subject=$subject&body=$body';
+
+  try {
+    html.window.open(mailto, '_self');
+  } catch (_) {
+    // If mailto fails for any reason, still give them a fallback they can copy.
+    html.window.alert('Please email support@fitquest.space to request deletion.');
   }
 }
 
@@ -84,6 +104,10 @@ class HomePage extends StatelessWidget {
                     },
                     child: const Text('Mobile Web Version'),
                   ),
+                  OutlinedButton(
+                    onPressed: () => context.go('/delete'),
+                    child: const Text('Delete Account'),
+                  ),
                 ],
               ),
 
@@ -121,6 +145,11 @@ class HomePage extends StatelessWidget {
                   const SizedBox(width: 8),
                   const Text('•', style: TextStyle(color: Colors.black38)),
                   const SizedBox(width: 8),
+                  TextButton(
+                    onPressed: () => context.go('/delete'),
+                    child: const Text('Delete Account'),
+                  ),
+                  const Spacer(),
                   Text(
                     '© ${DateTime.now().year} Fit Quest',
                     style: const TextStyle(color: Colors.black54),
@@ -288,6 +317,70 @@ class _SectionHeader extends StatelessWidget {
         const SizedBox(height: 6),
         Text(subtitle, style: const TextStyle(color: Color(0xFF4B5563))),
       ],
+    );
+  }
+}
+
+class DeleteAccountPage extends StatelessWidget {
+  const DeleteAccountPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Delete Account')),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 900),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Request Account & Data Deletion',
+                  style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'You may request deletion of your Fit Quest account and all associated data at any time.',
+                  style: TextStyle(height: 1.55, color: Color(0xFF374151)),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'To request deletion, email support and include the email address associated with your Fit Quest account.',
+                  style: TextStyle(height: 1.55, color: Color(0xFF374151)),
+                ),
+                const SizedBox(height: 18),
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: _openDeletionEmail,
+                      icon: const Icon(Icons.email_outlined),
+                      label: const Text('Email support@fitquest.space'),
+                    ),
+                    OutlinedButton(
+                      onPressed: () => context.go('/privacy'),
+                      child: const Text('View Privacy Policy'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 18),
+                const Text(
+                  'If the email button does not open your email client, please email: support@fitquest.space',
+                  style: TextStyle(color: Colors.black54, height: 1.4),
+                ),
+                const Spacer(),
+                TextButton(
+                  onPressed: () => context.go('/'),
+                  child: const Text('← Back to home'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
