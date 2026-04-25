@@ -89,6 +89,10 @@ class HomePage extends StatelessWidget {
                 children: [
                   ElevatedButton(
                     onPressed: () {},
+                    child: const Text('Download on Ios App Store'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {},
                     child: const Text('Download on Google Play'),
                   ),
                   OutlinedButton(
